@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#07070b" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%23121218'/%3E%3Ctext x='20' y='26' font-family='sans-serif' font-size='15' font-weight='700' fill='%232f7dfd' text-anchor='middle'%3EOM%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <title>Olamide Miracle — Developer Diary</title>
+  <meta name="description" content="A running log of what Olamide Miracle builds, breaks, and learns as a software developer." />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/public.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-container">
+      <a href="index.html" class="brand">
+        <svg class="brand__logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Olamide Miracle logo">
+          <rect x="1" y="1" width="38" height="38" rx="10" fill="#121218" stroke="#2f7dfd" stroke-width="1.5" />
+          <text x="20" y="26" font-family="'Space Grotesk', sans-serif" font-size="15" font-weight="700" fill="#2f7dfd" text-anchor="middle">OM</text>
+        </svg>
+        <span class="brand__name-full">Olamide Miracle</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav" id="siteNav">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="entries.html" class="nav-link">Diary Entries</a>
+        <a href="search.html" class="nav-link">Search</a>
+        <a href="categories.html" class="nav-link">Categories</a>
+        <a href="about.html" class="nav-link">About Me</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero container">
+      <p class="hero__prompt"><span class="prompt-sign">$</span> whoami</p>
+      <h1>Olamide Miracle<span class="cursor">&nbsp;</span></h1>
+      <p class="hero__subtitle">
+        Software developer. This is a running log of what I build, break, and
+        learn — bugs chased down, things picked up, and the occasional
+        weekend project that got out of hand.
+      </p>
+      <div class="hero__actions">
+        <a href="entries.html" class="btn btn--primary">Read the diary</a>
+        <a href="about.html" class="btn btn--secondary">About me</a>
+      </div>
+      <div class="hero__stats">
+        <div>
+          <div class="hero__stat-value" id="statTotalEntries">—</div>
+          <div class="hero__stat-label">entries logged</div>
+        </div>
+        <div>
+          <div class="hero__stat-value" id="statTotalCategories">—</div>
+          <div class="hero__stat-label">categories</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section container">
+      <div class="section__head">
+        <div>
+          <p class="eyebrow">latest entries</p>
+          <h2 class="section__title">Recently logged</h2>
+        </div>
+        <a href="entries.html" class="section__link">view all →</a>
+      </div>
+      <div class="entry-grid" id="featuredEntries"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <svg class="brand__logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Olamide Miracle logo">
+          <rect x="1" y="1" width="38" height="38" rx="10" fill="#121218" stroke="#2f7dfd" stroke-width="1.5" />
+          <text x="20" y="26" font-family="'Space Grotesk', sans-serif" font-size="15" font-weight="700" fill="#2f7dfd" text-anchor="middle">OM</text>
+        </svg>
+        <span>Olamide Miracle</span>
+      </div>
+      <p class="footer-tagline">// documenting the developer journey, one entry at a time</p>
+      <nav class="footer-nav">
+        <a href="index.html">Home</a>
+        <a href="entries.html">Diary Entries</a>
+        <a href="search.html">Search</a>
+        <a href="categories.html">Categories</a>
+        <a href="about.html">About Me</a>
+      </nav>
+      <p class="footer-meta">&copy; <span id="year"></span> Olamide Miracle. All entries reserved. · <a href="login.html" class="footer-admin-link">Admin</a></p>
+    </div>
+  </footer>
+
+  <script src="js/utils.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/data.js" defer></script>
+  <script src="js/public.js" defer></script>
+</body>
+</html>

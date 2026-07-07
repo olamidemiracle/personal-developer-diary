@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#07070b" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%23121218'/%3E%3Ctext x='20' y='26' font-family='sans-serif' font-size='15' font-weight='700' fill='%232f7dfd' text-anchor='middle'%3EOM%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <title>Log In · Developer Diary</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/auth.css" />
+</head>
+<body>
+  <main class="auth-page">
+    <form id="login-form" class="auth-card" novalidate>
+      <h1>Welcome back</h1>
+      <p class="auth-card__subtitle">Log in to continue your diary.</p>
+
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required autocomplete="email" />
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required autocomplete="current-password" />
+
+      <p id="form-error" class="form-error" hidden></p>
+
+      <button type="submit" class="btn btn--primary btn--block">Log In</button>
+    </form>
+  </main>
+
+  <script src="js/utils.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/auth.js" defer></script>
+</body>
+</html>

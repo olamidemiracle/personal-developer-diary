@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#07070b" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%23121218'/%3E%3Ctext x='20' y='26' font-family='sans-serif' font-size='15' font-weight='700' fill='%232f7dfd' text-anchor='middle'%3EOM%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <title>New Diary Entry — Olamide Miracle</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/public.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body>
+  <!-- Shown until the auth check resolves, so protected content never flashes -->
+  <div class="dash-loading" id="authGate">
+    <span class="spinner"></span> checking session…
+  </div>
+
+  <div id="pageRoot" hidden>
+    <header class="dash-header">
+      <div class="dash-header__inner">
+        <a href="dashboard.html" class="brand">
+          <svg class="brand__logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Olamide Miracle logo">
+            <rect x="1" y="1" width="38" height="38" rx="10" fill="#121218" stroke="#2f7dfd" stroke-width="1.5" />
+            <text x="20" y="26" font-family="'Space Grotesk', sans-serif" font-size="15" font-weight="700" fill="#2f7dfd" text-anchor="middle">OM</text>
+          </svg>
+          <span class="brand__name-full">Dashboard</span>
+        </a>
+
+        <div class="dash-header__actions">
+          <span class="dash-user" id="welcomeUser"></span>
+          <a href="index.html" target="_blank" rel="noopener" class="btn btn--secondary">View website</a>
+          <button id="logoutBtn" class="btn btn--secondary">Log out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="dash-main">
+      <a href="dashboard.html" class="section__link" style="display:inline-block; margin-bottom: 1.5rem;">&larr; back to dashboard</a>
+
+      <div class="entry-page-card reveal">
+        <div class="entry-page-header">
+          <p class="eyebrow" id="pageEyebrow">publish</p>
+          <h1 id="pageHeading">New Diary Entry</h1>
+          <p id="pageSubtext">Log today's work while it's still fresh. Date and time are captured automatically when you publish.</p>
+          <div class="auto-timestamp" id="autoTimestamp">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3 9h18M8 2v4M16 2v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span id="autoTimestampText">—</span>
+          </div>
+        </div>
+
+        <p class="publish-success" id="publishSuccess">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="publishSuccessText">Entry published successfully. Redirecting to the dashboard…</span>
+        </p>
+
+        <form id="newEntryForm" novalidate>
+          <div class="form-field form-field--full">
+            <label for="entryTitle">Title</label>
+            <input type="text" id="entryTitle" required minlength="3" maxlength="150" placeholder="e.g. Finally found the memory leak" />
+          </div>
+
+          <div class="form-field form-field--full">
+            <label for="entryCategory">Category</label>
+            <select id="entryCategory">
+              <option value="">Loading categories…</option>
+            </select>
+          </div>
+
+          <div class="form-field form-field--full">
+            <label for="entryWorkedOn">What I Worked On Today</label>
+            <textarea id="entryWorkedOn" required placeholder="Describe the task, feature, or bug you spent time on…"></textarea>
+          </div>
+
+          <div class="form-field form-field--full">
+            <label for="entryLearned">What I Learned Today</label>
+            <textarea id="entryLearned" placeholder="A new concept, tool, or trick you picked up…"></textarea>
+          </div>
+
+          <div class="form-field form-field--full">
+            <label for="entryProblems">Problems I Faced</label>
+            <textarea id="entryProblems" placeholder="What got in the way or went wrong…"></textarea>
+          </div>
+
+          <div class="form-field form-field--full">
+            <label for="entrySolutions">How I Solved Them</label>
+            <textarea id="entrySolutions" placeholder="How you worked through it (or plan to)…"></textarea>
+          </div>
+
+          <div class="form-field form-field--full">
+            <label for="entryImage">Upload Image (optional)</label>
+            <input type="file" id="entryImage" accept="image/png,image/jpeg,image/webp,image/gif" />
+            <p class="field-hint">JPEG, PNG, WEBP, or GIF — up to 5MB.</p>
+            <img id="entryImagePreview" class="image-preview" alt="Selected image preview" />
+            <button type="button" id="removeImageBtn" class="btn btn--secondary" style="margin-top: 0.6rem; display: none;">
+              Remove image
+            </button>
+          </div>
+
+          <p id="formError" class="form-error" hidden></p>
+
+          <div class="form-actions">
+            <a href="dashboard.html" class="btn btn--secondary">Cancel</a>
+            <button type="submit" class="btn btn--primary" id="publishBtn">Publish</button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/utils.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/data.js" defer></script>
+  <script src="js/new-entry.js" defer></script>
+</body>
+</html>
