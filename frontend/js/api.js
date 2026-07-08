@@ -5,8 +5,8 @@
  */
 (function () {
   const BASE_URL = window.location.origin.includes('5500')
-    ? 'http://127.0.0.1:5000/api' // when frontend is served separately (e.g. Live Server)
-    : '/api'; // when frontend is served by Express itself
+  ? 'http://127.0.0.1:5000/api'
+  : 'https://personal-developer-diary-backend.onrender.com/api';
 
   async function request(path, { method = 'GET', body } = {}) {
     const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
