@@ -23,9 +23,9 @@
   async function loadEntries() {
     try {
       const data = await window.DiaryAPI.entries.list();
-      if (Array.isArray(data) && data.length) return data;
-      if (Array.isArray(data?.entries) && data.entries.length) return data.entries;
-      throw new Error('empty');
+      if (Array.isArray(data)) return data; // even an empty array is a real, successful response
+      if (Array.isArray(data?.entries)) return data.entries;
+      throw new Error('unexpected response shape');
     } catch (_err) {
       return window.DiaryMockData.entries;
     }
@@ -34,9 +34,9 @@
   async function loadCategories() {
     try {
       const data = await window.DiaryAPI.categories.list();
-      if (Array.isArray(data) && data.length) return data;
-      if (Array.isArray(data?.categories) && data.categories.length) return data.categories;
-      throw new Error('empty');
+      if (Array.isArray(data)) return data;
+      if (Array.isArray(data?.categories)) return data.categories;
+      throw new Error('unexpected response shape');
     } catch (_err) {
       return window.DiaryMockData.categories;
     }
