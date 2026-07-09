@@ -12,17 +12,28 @@ const upload = require('../middleware/uploadMiddleware');
 
 const router = express.Router();
 
-router.use(protect); // every entry route requires authentication
-
 router
   .route('/')
-  .get(getEntries)
-  .post(upload.single('image'), validateDiaryEntry, createEntry);
+  .get(getEntries) // Public
+  .post(
+    protect,
+    upload.single('image'),
+    validateDiaryEntry,
+    createEntry
+  );
 
 router
   .route('/:id')
-  .get(getEntryById)
-  .put(upload.single('image'), validateDiaryEntry, updateEntry)
-  .delete(deleteEntry);
+  .get(getEntryById) // Public
+  .put(
+    protect,
+    upload.single('image'),
+    validateDiaryEntry,
+    updateEntry
+  )
+  .delete(
+    protect,
+    deleteEntry
+  );
 
 module.exports = router;

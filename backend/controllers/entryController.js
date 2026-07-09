@@ -30,7 +30,7 @@ const deleteImages = async (images) => {
  */
 const getEntries = async (req, res, next) => {
   try {
-    const query = Diary.find({ administrator: req.user._id })
+    const query = Diary.find()
       .sort({ date: -1 })
       .populate('category', 'name slug color')
       .populate('images', 'path mimetype');
@@ -38,7 +38,8 @@ const getEntries = async (req, res, next) => {
     const { page, limit } = req.query;
     if (page || limit) {
       const pageNum = Math.max(parseInt(page, 10) || 1, 1);
-      const limitNum = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100); // cap at 100/page
+      const limitNum = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
+
       query.skip((pageNum - 1) * limitNum).limit(limitNum);
     }
 
@@ -60,7 +61,7 @@ const getEntries = async (req, res, next) => {
  */
 const getEntryById = async (req, res, next) => {
   try {
-    const entry = await Diary.findOne({ _id: req.params.id, administrator: req.user._id })
+    const entry = await Diary.findById(req.params.id)
       .populate('category', 'name slug color')
       .populate('images', 'path mimetype');
 
