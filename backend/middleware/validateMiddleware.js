@@ -64,4 +64,33 @@ const validateDiaryEntry = (req, res, next) => {
   next();
 };
 
-module.exports = { validateLogin, validateDiaryEntry };
+module.exports = { validateLogin, validateDiaryEntry, validateBlogPost };
+
+/**
+ * Validates the "New Blog Post" request body: { title, content }.
+ * Kept deliberately separate from validateDiaryEntry — blog posts and
+ * diary entries are unrelated content types with their own rules, even
+ * though both happen to require a title.
+ */
+function validateBlogPost(req, res, next) {
+  const errors = [];
+  const { title, content } = req.body || {};
+
+  if (!title || typeof title !== 'string' || !title.trim()) {
+    errors.push('Title is required.');
+  } else if (title.trim().length < 3) {
+    errors.push('Title must be at least 3 characters long.');
+  } else if (title.trim().length > 150) {
+    errors.push('Title must be 150 characters or fewer.');
+  }
+
+  if (!content || typeof content !== 'string' || !content.trim()) {
+    errors.push('Content is required.');
+  }
+
+  if (errors.length > 0) {
+    return res.status(400).json({ message: 'Validation failed', errors });
+  }
+
+  next();
+}

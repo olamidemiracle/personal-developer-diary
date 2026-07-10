@@ -11,6 +11,7 @@
   <meta name="description" content="A running log of what Olamide Miracle builds, breaks, and learns as a software developer." />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/public.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
 </head>
 <body>
   <header class="site-header">
@@ -70,6 +71,16 @@
       </div>
       <div class="entry-grid" id="featuredEntries"></div>
     </section>
+
+    <section class="section container" id="blogSection" hidden>
+      <div class="section__head">
+        <div>
+          <p class="eyebrow">blog</p>
+          <h2 class="section__title">From the Blog</h2>
+        </div>
+      </div>
+      <div class="entry-grid" id="blogList"></div>
+    </section>
   </main>
 
   <footer class="site-footer">
@@ -97,5 +108,6 @@
   <script src="js/api.js" defer></script>
   <script src="js/data.js" defer></script>
   <script src="js/public.js" defer></script>
+  <script src="js/blog.js" defer></script>
 </body>
 </html>

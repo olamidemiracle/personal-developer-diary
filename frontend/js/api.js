@@ -54,6 +54,16 @@
     categories: {
       list: () => request('/categories'),
     },
+    // Blog posts are a separate content type from diary entries — see
+    // backend/models/Blog.js. Reads are public; writes require login
+    // (enforced server-side, same `protect` middleware as everything else).
+    blogs: {
+      list: () => request('/blogs'),
+      get: (id) => request(`/blogs/${id}`),
+      create: (payload) => request('/blogs', { method: 'POST', body: payload }),
+      update: (id, payload) => request(`/blogs/${id}`, { method: 'PUT', body: payload }),
+      remove: (id) => request(`/blogs/${id}`, { method: 'DELETE' }),
+    },
     uploads: {
       image: (formData) => request('/uploads', { method: 'POST', body: formData }),
     },

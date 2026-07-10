@@ -9,16 +9,17 @@ const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const compression = require('compression');
-const mongoSanitize = require('express-mongo-sanitize');
 const rateLimit = require('express-rate-limit');
 
 const connectDB = require('./config/db');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
+const { sanitizeRequest } = require('./middleware/sanitizeMiddleware');
 
 const authRoutes = require('./routes/authRoutes');
 const entryRoutes = require('./routes/entryRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
+const blogRoutes = require('./routes/blogRoutes');
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -48,7 +49,9 @@ connectDB();
 const app = express();
 app.set('etag', false);
 
-app.set('trust proxy', 1); // ensures req.ip is correct behind a reverse proxy/load balancer (Render, etc.)
+if (isProduction) {
+  app.set('trust proxy', 1); // ensures req.ip is correct behind a reverse proxy/load balancer (Render, etc.)
+}
 
 // --- Security headers ---
 // Relaxed CSP for scripts/styles: the frontend is plain HTML/CSS/JS served
@@ -77,7 +80,9 @@ app.use(compression());
 // CLIENT_URL may be a single origin or a comma-separated list, so the same
 // backend can serve a same-origin deployment (Render serving the frontend
 // too) or a split deployment (frontend on Netlify/Vercel, API on Render).
-const allowedOrigins = (process.env.CLIENT_URL || 'http://127.0.0.1:5500')
+const allowedOrigins = (
+  process.env.CLIENT_URL || 'http://127.0.0.1:5000,http://localhost:5000,http://127.0.0.1:5500,http://localhost:5500'
+)
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
@@ -86,12 +91,14 @@ app.use(
   cors({
     origin(origin, callback) {
       // Allow same-origin/non-browser requests (no Origin header) and any
-      // configured origin; reject anything else.
+      // configured origin.
       if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
+        return callback(null, true);
       }
+      // Deny by passing `false`, not an Error — an Error hard-fails the
+      // request server-side even for same-origin POST/PUT/DELETE calls
+      // (browsers attach an Origin header to those regardless).
+      callback(null, false);
     },
     credentials: true,
   })
@@ -107,7 +114,7 @@ app.use(cookieParser());
 // can't be used to bypass a Mongoose query. Validation middleware already
 // requires these fields to be plain strings, so this is defense-in-depth,
 // not the only line of protection.
-app.use(mongoSanitize());
+app.use(sanitizeRequest);
 
 // --- General API rate limiting ---
 // A broad safety net across all API routes, separate from and in addition
@@ -149,6 +156,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/entries', entryRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/blogs', blogRoutes);
 
 // --- Error handling (must be last) ---
 app.use(notFound);

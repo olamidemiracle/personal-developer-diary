@@ -85,10 +85,16 @@
           <p class="eyebrow">manage</p>
           <h2>Recent Entries</h2>
         </div>
-        <a id="createEntryBtn" href="new-entry.html" class="btn btn--primary">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
-          New Entry
-        </a>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <a id="createBlogBtn" href="new-blog.html" class="btn btn--secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 19.5V6a2 2 0 012-2h8.5L20 8.5V18a2 2 0 01-2 2H6a2 2 0 01-2-2.5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M14 4v4.5H18.5M8 13h8M8 16.5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Blog
+          </a>
+          <a id="createEntryBtn" href="new-entry.html" class="btn btn--primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+            New Entry
+          </a>
+        </div>
       </div>
 
       <ul class="entry-list" id="entryList"></ul>
