@@ -1,18 +1,16 @@
 /**
- * Blog posts on the Homepage.
+ * Blog feed on the Homepage.
  *
- * Completely independent of js/public.js (which handles diary entries) —
- * separate data source (GET /api/blogs, not /api/entries), separate
- * rendering, separate modal. The only thing shared is DiaryUtils/DiaryAPI
- * and the visual language (reusing .entry-card/.modal-overlay/.icon-btn
- * classes that already exist), so blog posts look at home on the same
- * page without duplicating CSS.
+ * Completely independent of js/public.js (diary entries) — separate data
+ * source (GET /api/blogs), separate rendering, no shared modal. Reading
+ * is public; Edit/Delete controls only appear if the current visitor
+ * happens to be the logged-in administrator (checked silently via
+ * GET /api/auth/me — failure just means "render it the way a normal
+ * visitor would see it," never a redirect or a visible error).
  *
- * Reading is public — no auth check gates the list itself. Edit/Delete
- * controls only appear if the current visitor happens to be the logged-in
- * administrator (checked silently via GET /api/auth/me; failure just
- * means "show it as a normal visitor would see it," never a redirect or
- * an error visitors would notice).
+ * Clicking a post now navigates to a dedicated detail page
+ * (blog-post.html?slug=...) instead of opening a modal, per the
+ * "professional blogging platform" redesign.
  */
 (function () {
   const { qs, qsa, redirectTo, showToast } = window.DiaryUtils;
@@ -26,21 +24,13 @@
 
   function formatDate(dateStr) {
     const d = new Date(dateStr);
-    if (Number.isNaN(d.getTime())) return dateStr;
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}.${m}.${day}`;
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
-  function excerptOf(content, max = 160) {
-    const text = (content || '').trim();
-    return text.length > max ? `${text.slice(0, max).trim()}…` : text;
-  }
-
-  async function loadBlogs() {
+  async function loadBlogs(filters = {}) {
     try {
-      const data = await window.DiaryAPI.blogs.list();
+      const data = await window.DiaryAPI.blogs.list(filters);
       return Array.isArray(data) ? data : [];
     } catch (_err) {
       return [];
@@ -56,55 +46,7 @@
     }
   }
 
-  // --- Read modal ---
-
-  function ensureBlogModal() {
-    let overlay = qs('#blogModal');
-    if (overlay) return overlay;
-
-    overlay = document.createElement('div');
-    overlay.id = 'blogModal';
-    overlay.className = 'modal-overlay';
-    overlay.innerHTML = `
-      <div class="modal-card" role="dialog" aria-modal="true">
-        <button class="modal-close" aria-label="Close">&times;</button>
-        <p class="modal-card__meta" id="blogModalMeta"></p>
-        <h2 id="blogModalTitle"></h2>
-        <div class="modal-card__body" id="blogModalBody"></div>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay || e.target.classList.contains('modal-close')) {
-        closeBlogModal();
-      }
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeBlogModal();
-    });
-
-    return overlay;
-  }
-
-  function openBlogModal(blog) {
-    const overlay = ensureBlogModal();
-    qs('#blogModalTitle', overlay).textContent = blog.title;
-    qs('#blogModalMeta', overlay).textContent = formatDate(blog.createdAt);
-    qs('#blogModalBody', overlay).textContent = blog.content;
-
-    overlay.classList.add('is-open');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeBlogModal() {
-    const overlay = qs('#blogModal');
-    if (!overlay) return;
-    overlay.classList.remove('is-open');
-    document.body.style.overflow = '';
-  }
-
-  // --- Delete confirm ---
+  // --- Delete confirm (styled, reused pattern from the dashboard) ---
 
   function ensureConfirmModal() {
     let overlay = qs('#blogConfirmModal');
@@ -151,8 +93,6 @@
     qs('#blogConfirmTitle', overlay).textContent = title;
 
     const deleteBtn = qs('#blogConfirmDelete', overlay);
-    // Replace the button so we never stack duplicate click listeners
-    // across repeated opens.
     const freshBtn = deleteBtn.cloneNode(true);
     deleteBtn.replaceWith(freshBtn);
     freshBtn.addEventListener('click', async () => {
@@ -179,57 +119,112 @@
 
   function buildBlogCard(blog, isAdmin) {
     const card = document.createElement('article');
-    card.className = 'entry-card reveal';
+    card.className = 'blog-card reveal';
+
+    const cover = blog.coverImage?.path
+      ? `<img class="blog-card__cover" src="${blog.coverImage.path}" alt="" loading="lazy" />`
+      : `<div class="blog-card__cover-placeholder">no cover image</div>`;
+
+    const isDraft = blog.status === 'draft';
+
     card.innerHTML = `
-      <div class="entry-card__meta">
-        <span>${formatDate(blog.createdAt)}</span>
-      </div>
-      <h3 class="entry-card__title">${escapeHtml(blog.title)}</h3>
-      <p class="entry-card__excerpt">${escapeHtml(excerptOf(blog.content))}</p>
-      <div class="entry-card__footer">
-        <span class="entry-card__read">read →</span>
+      ${cover}
+      <div class="blog-card__body">
+        <div class="blog-card__meta-row">
+          <span>${formatDate(blog.publishedAt || blog.createdAt)}</span>
+          <span>·</span>
+          <span>${blog.readingTime} min read</span>
+          ${blog.category ? `<span class="blog-card__badge">${escapeHtml(blog.category)}</span>` : ''}
+          ${isDraft ? '<span class="blog-card__badge blog-card__badge--draft">Draft</span>' : ''}
+        </div>
+        <h3 class="blog-card__title">${escapeHtml(blog.title)}</h3>
+        <p class="blog-card__excerpt">${escapeHtml(blog.excerpt)}</p>
         ${
-          isAdmin
-            ? `<div class="entry-row__actions" style="flex-shrink:0;">
-                 <button class="icon-btn" data-action="edit-blog" data-id="${blog._id}" aria-label="Edit blog post">
-                   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
-                 </button>
-                 <button class="icon-btn icon-btn--danger" data-action="delete-blog" data-id="${blog._id}" data-title="${escapeHtml(blog.title)}" aria-label="Delete blog post">
-                   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                 </button>
-               </div>`
+          blog.tags?.length
+            ? `<div class="blog-card__tags">${blog.tags
+                .slice(0, 3)
+                .map((t) => `<span class="tag-chip">#${escapeHtml(t)}</span>`)
+                .join('')}</div>`
             : ''
         }
+        <div class="blog-card__footer">
+          <a href="blog-post.html?slug=${encodeURIComponent(blog.slug)}" class="blog-card__read-more">
+            Read more →
+          </a>
+          ${
+            isAdmin
+              ? `<div class="entry-row__actions" style="flex-shrink:0;">
+                   <button class="icon-btn" data-action="edit-blog" data-id="${blog._id}" aria-label="Edit blog post">
+                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+                   </button>
+                   <button class="icon-btn icon-btn--danger" data-action="delete-blog" data-id="${blog._id}" data-title="${escapeHtml(blog.title)}" aria-label="Delete blog post">
+                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                   </button>
+                 </div>`
+              : ''
+          }
+        </div>
       </div>
     `;
 
-    card.addEventListener('click', (e) => {
-      // Edit/Delete buttons handle their own clicks — don't also open
-      // the read modal when one of those was what was actually clicked.
-      if (e.target.closest('[data-action]')) return;
-      openBlogModal(blog);
-    });
-
     return card;
   }
+
+  // --- Category filters ---
+
+  function renderFilterBar(blogs, activeCategory, onSelect) {
+    const bar = qs('#blogFilterBar');
+    if (!bar) return;
+
+    const categories = [...new Set(blogs.map((b) => b.category).filter(Boolean))];
+    if (!categories.length) {
+      bar.innerHTML = '';
+      return;
+    }
+
+    const chips = [{ value: '', label: 'All' }, ...categories.map((c) => ({ value: c, label: c }))];
+    bar.innerHTML = chips
+      .map(
+        (c) =>
+          `<button type="button" class="blog-filter-chip${c.value === activeCategory ? ' is-active' : ''}" data-category="${escapeHtml(c.value)}">${escapeHtml(c.label)}</button>`
+      )
+      .join('');
+
+    qsa('.blog-filter-chip', bar).forEach((chip) => {
+      chip.addEventListener('click', () => onSelect(chip.dataset.category));
+    });
+  }
+
+  let activeCategory = '';
 
   async function renderBlogSection() {
     const section = qs('#blogSection');
     const listEl = qs('#blogList');
     if (!listEl) return; // this page doesn't have a blog section
 
-    const [blogs, isAdmin] = await Promise.all([loadBlogs(), checkIsAdmin()]);
+    const [allBlogs, isAdmin] = await Promise.all([loadBlogs(), checkIsAdmin()]);
 
-    if (!blogs.length) {
-      // No published posts yet — hide the section entirely rather than
-      // showing an empty "From the Blog" heading with nothing under it.
+    if (!allBlogs.length) {
       if (section) section.hidden = true;
       return;
     }
 
     if (section) section.hidden = false;
+
+    renderFilterBar(allBlogs, activeCategory, (category) => {
+      activeCategory = category;
+      renderBlogSection();
+    });
+
+    const filtered = activeCategory ? allBlogs.filter((b) => b.category === activeCategory) : allBlogs;
+
     listEl.innerHTML = '';
-    blogs.forEach((blog) => listEl.appendChild(buildBlogCard(blog, isAdmin)));
+    if (!filtered.length) {
+      listEl.innerHTML = '<p class="empty-state">// no posts in this category yet</p>';
+      return;
+    }
+
+    filtered.forEach((blog) => listEl.appendChild(buildBlogCard(blog, isAdmin)));
     window.DiaryUtils.initScrollReveal();
 
     qsa('[data-action="edit-blog"]', listEl).forEach((btn) => {

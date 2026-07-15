@@ -67,14 +67,15 @@ const validateDiaryEntry = (req, res, next) => {
 module.exports = { validateLogin, validateDiaryEntry, validateBlogPost };
 
 /**
- * Validates the "New Blog Post" request body: { title, content }.
+ * Validates the "New Blog Post" request body:
+ * { title, content, excerpt?, category?, tags?, status? }.
  * Kept deliberately separate from validateDiaryEntry — blog posts and
  * diary entries are unrelated content types with their own rules, even
  * though both happen to require a title.
  */
 function validateBlogPost(req, res, next) {
   const errors = [];
-  const { title, content } = req.body || {};
+  const { title, content, excerpt, category, tags, status } = req.body || {};
 
   if (!title || typeof title !== 'string' || !title.trim()) {
     errors.push('Title is required.');
@@ -86,6 +87,27 @@ function validateBlogPost(req, res, next) {
 
   if (!content || typeof content !== 'string' || !content.trim()) {
     errors.push('Content is required.');
+  }
+
+  if (excerpt !== undefined && excerpt !== null && typeof excerpt !== 'string') {
+    errors.push('Excerpt must be text.');
+  } else if (typeof excerpt === 'string' && excerpt.length > 300) {
+    errors.push('Excerpt must be 300 characters or fewer.');
+  }
+
+  if (category !== undefined && category !== null && typeof category !== 'string') {
+    errors.push('Category must be text.');
+  }
+
+  // `tags` arrives as a JSON string over multipart/form-data (FormData
+  // can't carry real arrays), so accept either shape here — the
+  // controller is responsible for parsing the string form before saving.
+  if (tags !== undefined && typeof tags !== 'string' && !Array.isArray(tags)) {
+    errors.push('Tags must be a list of text values.');
+  }
+
+  if (status !== undefined && !['draft', 'published'].includes(status)) {
+    errors.push('Status must be either "draft" or "published".');
   }
 
   if (errors.length > 0) {

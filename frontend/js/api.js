@@ -58,11 +58,20 @@
     // backend/models/Blog.js. Reads are public; writes require login
     // (enforced server-side, same `protect` middleware as everything else).
     blogs: {
-      list: () => request('/blogs'),
-      get: (id) => request(`/blogs/${id}`),
+      list: (params = {}) => {
+        const query = new URLSearchParams(
+          Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined && v !== ''))
+        ).toString();
+        return request(`/blogs${query ? `?${query}` : ''}`);
+      },
+      get: (idOrSlug) => request(`/blogs/${idOrSlug}`),
       create: (payload) => request('/blogs', { method: 'POST', body: payload }),
       update: (id, payload) => request(`/blogs/${id}`, { method: 'PUT', body: payload }),
       remove: (id) => request(`/blogs/${id}`, { method: 'DELETE' }),
+      // Editor utility: upload one image and get back { url }. Used for
+      // both the cover image preview flow and inserting images inline
+      // into the rich text content.
+      uploadImage: (formData) => request('/blogs/upload-image', { method: 'POST', body: formData }),
     },
     uploads: {
       image: (formData) => request('/uploads', { method: 'POST', body: formData }),

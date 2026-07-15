@@ -7,12 +7,15 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%23121218'/%3E%3Ctext x='20' y='26' font-family='sans-serif' font-size='15' font-weight='700' fill='%232f7dfd' text-anchor='middle'%3EOM%3C/text%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <title>Olamide Miracle — Developer Diary</title>
-  <meta name="description" content="A running log of what Olamide Miracle builds, breaks, and learns as a software developer." />
+  <title id="pageTitle">Blog — Olamide Miracle</title>
+  <meta name="description" id="pageDescription" content="A blog post from Olamide Miracle's developer diary." />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/public.css" />
-  <link rel="stylesheet" href="css/dashboard.css" />
   <link rel="stylesheet" href="css/blog.css" />
+  <!-- Prism.js: syntax highlighting for code blocks in blog content.
+       Loaded via CDN, same practical approach as Google Fonts elsewhere
+       in this project — not a UI framework, just a focused utility. -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
 </head>
 <body>
   <header class="site-header">
@@ -38,53 +41,38 @@
   </header>
 
   <main>
-    <section class="hero container">
-      <p class="hero__prompt"><span class="prompt-sign">$</span> whoami</p>
-      <h1>Olamide Miracle<span class="cursor">&nbsp;</span></h1>
-      <p class="hero__subtitle">
-        Software developer. This is a running log of what I build, break, and
-        learn — bugs chased down, things picked up, and the occasional
-        weekend project that got out of hand.
-      </p>
-      <div class="hero__actions">
-        <a href="entries.html" class="btn btn--primary">Read the diary</a>
-        <a href="about.html" class="btn btn--secondary">About me</a>
-      </div>
-      <div class="hero__stats">
-        <div>
-          <div class="hero__stat-value" id="statTotalEntries">—</div>
-          <div class="hero__stat-label">entries logged</div>
-        </div>
-        <div>
-          <div class="hero__stat-value" id="statTotalCategories">—</div>
-          <div class="hero__stat-label">categories</div>
-        </div>
-      </div>
-    </section>
+    <div id="notFoundState" class="page-header container" hidden>
+      <p class="eyebrow">oops</p>
+      <h1>Post not found</h1>
+      <p>This blog post doesn't exist, or hasn't been published yet.</p>
+      <a href="index.html" class="btn btn--primary" style="margin-top:1.5rem;">Back to home</a>
+    </div>
 
-    <div class="container">
-      <div class="home-feed-grid">
-        <section class="section">
-          <div class="section__head">
-            <div>
-              <p class="eyebrow">latest entries</p>
-              <h2 class="section__title">Recently logged</h2>
-            </div>
-            <a href="entries.html" class="section__link">view all →</a>
-          </div>
-          <div class="entry-grid" id="featuredEntries"></div>
-        </section>
+    <div id="blogContent" hidden>
+      <section class="blog-hero container">
+        <div class="blog-hero__meta">
+          <span id="blogMetaCategory"></span>
+          <span id="blogMetaDate"></span>
+          <span id="blogMetaReadingTime"></span>
+        </div>
+        <h1 id="blogTitleDisplay"></h1>
+        <div class="blog-hero__tags" id="blogTagsDisplay"></div>
+        <img id="blogCoverDisplay" class="blog-hero__cover" alt="" hidden />
+      </section>
 
-        <section class="section" id="blogSection" hidden>
-          <div class="section__head">
-            <div>
-              <p class="eyebrow">blog</p>
-              <h2 class="section__title">From the Blog</h2>
-            </div>
+      <article class="blog-detail-body container">
+        <div class="blog-content" id="blogBodyDisplay"></div>
+      </article>
+
+      <div class="blog-detail-footer container">
+        <div class="blog-author-card">
+          <div class="blog-author-card__avatar">OM</div>
+          <div>
+            <div class="blog-author-card__name" id="blogAuthorName">Olamide Miracle</div>
+            <div class="blog-author-card__role">Software Engineering Student</div>
           </div>
-          <div class="blog-filter-bar" id="blogFilterBar"></div>
-          <div class="entry-grid" id="blogList"></div>
-        </section>
+        </div>
+        <a href="index.html" class="btn btn--secondary">&larr; More posts</a>
       </div>
     </div>
   </main>
@@ -112,8 +100,11 @@
 
   <script src="js/utils.js" defer></script>
   <script src="js/api.js" defer></script>
-  <script src="js/data.js" defer></script>
-  <script src="js/public.js" defer></script>
-  <script src="js/blog.js" defer></script>
+  <script src="js/blog-detail.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css-extras.min.js" defer></script>
 </body>
 </html>
