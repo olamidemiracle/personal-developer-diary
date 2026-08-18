@@ -21,9 +21,41 @@
     qs('#blogContent').hidden = true;
   }
 
+  function setMeta(id, value) {
+    const el = qs(`#${id}`);
+    if (el) el.setAttribute('content', value);
+  }
+
   function renderBlog(blog) {
-    document.title = `${blog.title} — Olamide Miracle`;
-    qs('#pageDescription').setAttribute('content', blog.excerpt || '');
+    const fullTitle = `${blog.title} — Olamide Miracle`;
+    const description = blog.excerpt || '';
+    const url = `${window.location.origin}/blog-post.html?slug=${encodeURIComponent(blog.slug)}`;
+
+    document.title = fullTitle;
+    qs('#pageDescription').setAttribute('content', description);
+    qs('#canonicalLink').setAttribute('href', url);
+    setMeta('ogTitle', fullTitle);
+    setMeta('ogDescription', description);
+    setMeta('ogUrl', url);
+    setMeta('twitterTitle', fullTitle);
+    setMeta('twitterDescription', description);
+
+    // Only advertise an og:image/twitter:image when there's a real cover
+    // image to point at — a missing image tag is fine, a broken one isn't.
+    if (blog.coverImage?.path) {
+      const imageUrl = `${window.location.origin}${blog.coverImage.path}`;
+      ['og:image', 'twitter:image'].forEach((prop) => {
+        let tag = document.querySelector(`meta[property="${prop}"], meta[name="${prop}"]`);
+        if (!tag) {
+          tag = document.createElement('meta');
+          if (prop.startsWith('og:')) tag.setAttribute('property', prop);
+          else tag.setAttribute('name', prop);
+          document.head.appendChild(tag);
+        }
+        tag.setAttribute('content', imageUrl);
+      });
+      setMeta('twitterCard', 'summary_large_image');
+    }
 
     qs('#blogTitleDisplay').textContent = blog.title;
     qs('#blogMetaDate').textContent = formatDate(blog.publishedAt || blog.createdAt);

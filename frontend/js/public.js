@@ -106,6 +106,7 @@
 
     if (firstImage) {
       imageEl.src = firstImage.path;
+      imageEl.alt = entry.title;
       imageEl.hidden = false;
     } else {
       imageEl.hidden = true;
@@ -164,7 +165,7 @@ body.innerHTML = `
     card.className = 'entry-card reveal';
     const firstImage = Array.isArray(entry.images) && entry.images.length ? entry.images[0] : null;
     card.innerHTML = `
-      ${firstImage ? `<img class="entry-card__image" src="${firstImage.path}" alt="" loading="lazy" />` : ''}
+      ${firstImage ? `<img class="entry-card__image" src="${firstImage.path}" alt="${escapeHtml(entry.title)}" loading="lazy" />` : ''}
       <div class="entry-card__meta">
         <span><span class="mood-dot" style="background:${MOOD_COLORS[entry.mood] || MOOD_COLORS.neutral}"></span>${formatDate(entry.date)}</span>
         <span class="category-badge">${escapeHtml(categoryLabel(categories, entry.category))}</span>

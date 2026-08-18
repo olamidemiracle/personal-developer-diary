@@ -122,7 +122,7 @@
     card.className = 'blog-card reveal';
 
     const cover = blog.coverImage?.path
-      ? `<img class="blog-card__cover" src="${blog.coverImage.path}" alt="" loading="lazy" />`
+      ? `<img class="blog-card__cover" src="${blog.coverImage.path}" alt="${escapeHtml(blog.title)}" loading="lazy" />`
       : `<div class="blog-card__cover-placeholder">no cover image</div>`;
 
     const isDraft = blog.status === 'draft';
@@ -205,7 +205,11 @@
     const [allBlogs, isAdmin] = await Promise.all([loadBlogs(), checkIsAdmin()]);
 
     if (!allBlogs.length) {
-      if (section) section.hidden = true;
+      if (section) {
+        section.hidden = true;
+        return;
+      }
+      listEl.innerHTML = '<p class="empty-state">// no posts published yet</p>';
       return;
     }
 

@@ -3,3 +3,6 @@ Allow: /
 Disallow: /login.html
 Disallow: /dashboard.html
 Disallow: /new-entry.html
+Disallow: /new-blog.html
+
+Sitemap: https://personal-developer-diary-backend.onrender.com/sitemap.xml

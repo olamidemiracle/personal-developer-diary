@@ -16,6 +16,12 @@ GitHub, MongoDB Atlas, and Render instructions.
 - **Public site** — Home, Diary Entries, Search (with category/date/month/
   year filters), Categories, About Me. Read-only; visitors can't create,
   edit, or delete anything.
+- **Blog** — a separate, longer-form content type from diary entries
+  (own model, own editor, own public listing at `blog.html`/
+  `blog-post.html`). Supports drafts, cover images, tags, categories,
+  and inline images in a rich-text editor. Draft posts are only visible
+  to the logged-in administrator; published posts are public with
+  SEO-friendly slugs and an RSS feed (`/feed.xml`).
 - **Single-administrator auth** — no public registration. JWT sessions in
   an httpOnly cookie, bcrypt-hashed password, brute-force lockout on login.
 - **Admin dashboard** — stats, recent entries, create/edit/delete, all
@@ -127,12 +133,22 @@ controller source (`backend/controllers/`), which is commented throughout.
 | POST | `/auth/login` | public | rate-limited, validated |
 | POST | `/auth/logout` | private | clears the session cookie |
 | GET | `/auth/me` | private | current admin profile |
-| GET | `/entries` | private | supports optional `?page=&limit=` |
+| GET | `/entries` | public | supports optional `?page=&limit=` |
 | POST | `/entries` | private | multipart/form-data, optional image |
-| GET / PUT / DELETE | `/entries/:id` | private | ownership-scoped |
+| GET | `/entries/:id` | public | |
+| PUT / DELETE | `/entries/:id` | private | ownership-scoped |
 | GET | `/categories` | public | used by the public Categories page |
 | POST | `/categories` | private | |
+| GET | `/blogs` | public | published only; the admin also sees their own drafts |
+| GET | `/blogs/:idOrSlug` | public | published only (admin can preview their own drafts) |
+| POST | `/blogs` | private | multipart/form-data, optional cover image |
+| PUT | `/blogs/:id` | private | ownership-scoped |
+| DELETE | `/blogs/:id` | private | ownership-scoped |
+| POST | `/blogs/upload-image` | private | editor utility for inline content images |
 | POST | `/uploads` | private | standalone image upload utility |
+
+Also served outside `/api`: `GET /sitemap.xml` (static pages + published
+blog posts) and `GET /feed.xml` (RSS 2.0 of published blog posts).
 
 ## Security
 
@@ -290,10 +306,19 @@ text index on name/description.
 Multer's limit). Indexes on `diary + createdAt`, `administrator +
 createdAt`.
 
+**`Blog`** (added later, kept deliberately independent of the above) —
+`administrator` (ref, author), `title`, `slug` (unique, auto-generated),
+`excerpt` (auto-derived from `content` if left blank), `content` (rich
+HTML), `coverImage` (embedded, not an `Image` ref), `category` (plain
+string, not a ref to `Category`), `tags`, `status` (`draft`/`published`),
+`publishedAt`, `readingTime` (auto-computed), timestamps. Text index
+across title/excerpt/content/tags.
+
 **Relationships:**
 ```
 Administrator  1 ───── * Diary        (author)
 Category       1 ───── * Diary        (optional grouping)
 Diary          1 ───── * Image        (attachments)
 Administrator  1 ───── * Image        (uploader)
+Administrator  1 ───── * Blog         (author; unrelated to Diary/Category/Image)
 ```
