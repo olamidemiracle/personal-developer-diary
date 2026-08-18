@@ -8,7 +8,8 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "seed": "node seed/createAdmin.js",
-    "seed:categories": "node seed/createCategories.js"
+    "seed:categories": "node seed/createCategories.js",
+    "test": "jest --runInBand"
   },
   "keywords": [
     "developer-diary",
@@ -33,6 +34,9 @@
     "sharp": "^0.33.4"
   },
   "devDependencies": {
-    "nodemon": "^3.1.4"
+    "jest": "^29.7.0",
+    "mongodb-memory-server": "^9.4.1",
+    "nodemon": "^3.1.4",
+    "supertest": "^7.0.0"
   }
 }
