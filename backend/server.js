@@ -158,6 +158,15 @@ app.use('/api/uploads', uploadRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/blogs', blogRoutes);
 
+// --- 404s for the frontend vs. the API ---
+// Anything reaching here didn't match a static file or an /api route.
+// /api/* keeps returning JSON (below); everything else gets the styled
+// 404 page instead of a bare JSON error blob.
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
+  res.status(404).sendFile(path.join(__dirname, '..', 'frontend', '404.html'));
+});
+
 // --- Error handling (must be last) ---
 app.use(notFound);
 app.use(errorHandler);
