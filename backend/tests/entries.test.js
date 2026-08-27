@@ -15,23 +15,25 @@ describe('Diary entries', () => {
   });
 
   it('POST /api/entries requires authentication', async () => {
-    const res = await request(app).post('/api/entries').send({ title: 'Test entry', workedOn: 'stuff' });
+    const res = await request(app).post('/api/entries').send({ title: 'Test entry', content: '<p>stuff</p>' });
     expect(res.status).toBe(401);
   });
 
-  it('rejects a POST missing the required "workedOn" field', async () => {
+  it('rejects a POST with no real content (an empty contenteditable canvas)', async () => {
     const agent = await loggedInAgent(app);
-    const res = await agent.post('/api/entries').send({ title: 'Test entry' });
+    const res = await agent.post('/api/entries').send({ title: 'Test entry', content: '<p><br></p>' });
     expect(res.status).toBe(400);
   });
 
   it('creates, lists, updates, and deletes an entry end to end', async () => {
     const agent = await loggedInAgent(app);
 
-    const createRes = await agent
-      .post('/api/entries')
-      .send({ title: 'Fixed the login bug', workedOn: 'Chased down a race condition in the auth middleware.' });
+    const createRes = await agent.post('/api/entries').send({
+      title: 'Fixed the login bug',
+      content: '<h3>What happened</h3><p>Chased down a race condition in the auth middleware.</p>',
+    });
     expect(createRes.status).toBe(201);
+    expect(createRes.body.entry.excerpt).toContain('Chased down a race condition');
     const entryId = createRes.body.entry._id;
 
     const listRes = await request(app).get('/api/entries');
@@ -40,10 +42,11 @@ describe('Diary entries', () => {
 
     const updateRes = await agent.put(`/api/entries/${entryId}`).send({
       title: 'Fixed the login bug (for real this time)',
-      workedOn: 'Same as before, plus a regression test.',
+      content: '<p>Same as before, plus a regression test.</p>',
     });
     expect(updateRes.status).toBe(200);
     expect(updateRes.body.entry.title).toBe('Fixed the login bug (for real this time)');
+    expect(updateRes.body.entry.excerpt).toContain('regression test');
 
     const deleteRes = await agent.delete(`/api/entries/${entryId}`);
     expect(deleteRes.status).toBe(200);
@@ -57,7 +60,7 @@ describe('Diary entries', () => {
     const fakeId = '507f1f77bcf86cd799439011';
     const res = await agent
       .put(`/api/entries/${fakeId}`)
-      .send({ title: 'A valid title', workedOn: 'Something' });
+      .send({ title: 'A valid title', content: '<p>Something</p>' });
     expect(res.status).toBe(404);
   });
 });

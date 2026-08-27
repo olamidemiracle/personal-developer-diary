@@ -25,8 +25,15 @@
     return `${y}.${m}.${day}`;
   }
 
+  function stripHtml(html) {
+    return String(html || '')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
   function excerptOf(entry) {
-    const text = entry.workedOn || '';
+    const text = entry.excerpt || stripHtml(entry.content);
     return text.length > 140 ? `${text.slice(0, 140).trim()}…` : text;
   }
 
@@ -173,10 +180,7 @@ async function openViewEntry(entryId) {
     qs('#viewCategory').textContent = entry.category?.name || 'Uncategorized';
     qs('#viewDate').textContent = new Date(entry.date).toLocaleString();
 
-    qs('#viewWorkedOn').textContent = entry.workedOn || '';
-    qs('#viewLearned').textContent = entry.learned || '';
-    qs('#viewProblems').textContent = entry.problems || '';
-    qs('#viewSolutions').textContent = entry.solutions || '';
+    qs('#viewContent').innerHTML = entry.content || '<p>—</p>';
 
     const img = qs('#viewImage');
 

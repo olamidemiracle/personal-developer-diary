@@ -26,9 +26,10 @@ GitHub, MongoDB Atlas, and Render instructions.
   an httpOnly cookie, bcrypt-hashed password, brute-force lockout on login.
 - **Admin dashboard** — stats, recent entries, create/edit/delete, all
   backed by real MongoDB data.
-- **New/Edit Diary Entry** — Title, Category, "What I Worked On Today",
-  "What I Learned Today", "Problems I Faced", "How I Solved Them", optional
-  image upload. Date/time captured automatically, never user-editable.
+- **New/Edit Diary Entry** — Title, Category, a freeform rich-text editor
+  (the same toolbar the blog editor uses — headings, lists, code blocks,
+  links, images, embeds), optional cover image upload. Date/time captured
+  automatically, never user-editable.
 - **Very dark, premium UI** — near-black background, charcoal cards,
   electric-blue accents, Space Grotesk/Inter/JetBrains Mono type, subtle
   motion (scroll-reveal, hover-lift, a terminal-style blinking cursor),
@@ -247,14 +248,17 @@ The dashboard reads and manages real MongoDB data end to end.
 - **Success messages** — a shared toast helper shows confirmation after
   delete/publish/update.
 
-## New Diary Entry (Phase 6)
+## New Diary Entry (Phase 6, redesigned later)
 
 `new-entry.html` — real MongoDB writes, not local storage. **Fields:**
-Title, Category, "What I Worked On Today", "What I Learned Today",
-"Problems I Faced", "How I Solved Them", optional image upload. Date and
-time are captured server-side (`Diary.date`, `default: Date.now`,
-`immutable: true`) — never sent by the client. `POST /api/entries` is
-`multipart/form-data`, handled by Multer; an uploaded image becomes an
+Title, Category, a freeform rich-text `content` editor (shared toolbar
+component with the blog editor — the author structures their own
+headings rather than filling in fixed prompts), optional cover image
+upload. An `excerpt` is auto-derived from `content` on every save, same
+pattern as blog posts. Date and time are captured server-side
+(`Diary.date`, `default: Date.now`, `immutable: true`) — never sent by
+the client. `POST /api/entries` is `multipart/form-data`, handled by
+Multer; an uploaded image becomes an
 `Image` document linked to the new `Diary`. `GET/POST /api/categories`
 were added so the form's category dropdown reads real data.
 
@@ -291,8 +295,9 @@ Four collections in `backend/models/`:
 `select: false`), `lastLoginAt`, enforced singleton, timestamps.
 
 **`Diary`** — the core collection. `administrator` (ref, required),
-`title`, `category` (ref, optional), `workedOn` (required), `learned`,
-`problems`, `solutions` (all optional), `images` ([ref]), `date`
+`title`, `category` (ref, optional), `content` (required, rich HTML from
+the editor), `excerpt` (auto-derived from `content` on every save —
+there's no separate excerpt input, unlike blog posts), `images` ([ref]), `date`
 (auto-captured, immutable), timestamps. Indexes: text search across all
 prompt fields, `administrator + date`, `category + date`.
 

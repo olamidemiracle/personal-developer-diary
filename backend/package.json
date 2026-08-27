@@ -9,6 +9,7 @@
     "dev": "nodemon server.js",
     "seed": "node seed/createAdmin.js",
     "seed:categories": "node seed/createCategories.js",
+    "migrate:entries-content": "node seed/migrateEntriesToContent.js",
     "test": "jest --runInBand"
   },
   "keywords": [

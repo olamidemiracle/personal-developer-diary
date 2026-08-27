@@ -4,8 +4,10 @@ const mongoose = require('mongoose');
  * Diary collection.
  *
  * The core collection of this app: each document is one journal entry
- * written by the (single) administrator, structured around the four
- * prompts the "New Diary Entry" page asks for.
+ * written by the (single) administrator. `content` is freeform rich HTML
+ * from the editor — the author structures their own subtitles rather
+ * than filling in fixed prompts (this replaced an earlier version with
+ * four fixed fields: workedOn/learned/problems/solutions).
  *
  * Relationships:
  *   - administrator (required)  1 Administrator ---* Diary   (author)
@@ -41,25 +43,22 @@ const diarySchema = new mongoose.Schema(
       index: true,
     },
 
-    // --- The four diary prompts ---
-    workedOn: {
+    // Rich HTML from the editor — freeform, the author structures their
+    // own subtitles (H1/H2/H3) rather than filling in fixed prompts.
+    // Trusted content: the only person who can ever write it is the
+    // logged-in administrator, same trust model as Blog.content.
+    content: {
       type: String,
-      required: [true, 'Please describe what you worked on today'],
-      trim: true,
+      required: [true, 'Content is required'],
     },
-    learned: {
+
+    // Short plain-text summary for cards/search, auto-derived from
+    // `content` on every save (see the pre-save hook below) — there's no
+    // separate excerpt input for diary entries, unlike blog posts.
+    excerpt: {
       type: String,
       trim: true,
-      default: '',
-    },
-    problems: {
-      type: String,
-      trim: true,
-      default: '',
-    },
-    solutions: {
-      type: String,
-      trim: true,
+      maxlength: 300,
       default: '',
     },
 
@@ -84,19 +83,33 @@ const diarySchema = new mongoose.Schema(
 
 // --- Indexes ---
 
-// Full-text search across all four prompt fields and the title.
-diarySchema.index({
-  title: 'text',
-  workedOn: 'text',
-  learned: 'text',
-  problems: 'text',
-  solutions: 'text',
-});
+// Full-text search across title, content, and the auto-derived excerpt.
+diarySchema.index({ title: 'text', content: 'text', excerpt: 'text' });
 
 // Most common query pattern: "this admin's entries, most recent first".
 diarySchema.index({ administrator: 1, date: -1 });
 
 // Filtering entries by category.
 diarySchema.index({ category: 1, date: -1 });
+
+/** Strips HTML tags down to plain text, for the excerpt fallback. */
+function stripHtml(html) {
+  return String(html || '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Diary entries have no separate excerpt input (unlike blog posts), so
+// this always regenerates the excerpt whenever content changes rather
+// than only when it's empty — there's nothing else that could have set
+// it deliberately.
+diarySchema.pre('save', function autoExcerpt(next) {
+  if (this.isModified('content') || !this.excerpt) {
+    const plainText = stripHtml(this.content);
+    this.excerpt = plainText.length > 220 ? `${plainText.slice(0, 220).trim()}…` : plainText;
+  }
+  next();
+});
 
 module.exports = mongoose.model('Diary', diarySchema);

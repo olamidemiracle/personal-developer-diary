@@ -21,6 +21,9 @@
   const editId = params.get('edit');
   const isEditMode = Boolean(editId);
 
+  const canvas = () => qs('#editorCanvas');
+  let richEditor;
+
   // --- Auth guard ---
 
   async function requireAuth() {
@@ -164,10 +167,8 @@
     }
 
     qs('#entryTitle').value = entry.title || '';
-    qs('#entryWorkedOn').value = entry.workedOn || '';
-    qs('#entryLearned').value = entry.learned || '';
-    qs('#entryProblems').value = entry.problems || '';
-    qs('#entrySolutions').value = entry.solutions || '';
+    canvas().innerHTML = entry.content || '';
+    richEditor.updateStats();
 
     await loadCategoriesIntoSelect(entry.category?._id || '');
 
@@ -190,28 +191,23 @@
 
     const title = qs('#entryTitle').value.trim();
     const category = qs('#entryCategory').value;
-    const workedOn = qs('#entryWorkedOn').value.trim();
-    const learned = qs('#entryLearned').value.trim();
-    const problems = qs('#entryProblems').value.trim();
-    const solutions = qs('#entrySolutions').value.trim();
+    const content = canvas().innerHTML.trim();
+    const plainText = canvas().innerText.trim();
     const imageFile = qs('#entryImage').files?.[0];
 
     if (title.length < 3) {
       showError(errorEl, 'Title must be at least 3 characters.');
       return;
     }
-    if (!workedOn) {
-      showError(errorEl, '"What I Worked On Today" is required.');
+    if (!plainText) {
+      showError(errorEl, 'Entry content is required.');
       return;
     }
 
     const formData = new FormData();
     formData.append('title', title);
     if (category) formData.append('category', category);
-    formData.append('workedOn', workedOn);
-    formData.append('learned', learned);
-    formData.append('problems', problems);
-    formData.append('solutions', solutions);
+    formData.append('content', content);
     if (imageFile) formData.append('image', imageFile);
     if (isEditMode && removeExistingImage) formData.append('removeImage', 'true');
 
@@ -244,7 +240,17 @@
 
     startAutoTimestamp();
     wireImageControls();
-    window.DiaryUtils.initScrollReveal();   // ← new line
+    window.DiaryUtils.initScrollReveal();
+
+    richEditor = window.DiaryRichEditor.wire({
+      uploadImage: async (file) => {
+        const formData = new FormData();
+        formData.append('image', file);
+        const result = await window.DiaryAPI.uploads.image(formData);
+        return result.file.path;
+      },
+    });
+
     if (isEditMode) {
       await prefillForEdit();
     } else {

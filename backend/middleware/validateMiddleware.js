@@ -36,14 +36,16 @@ const validateLogin = (req, res, next) => {
 };
 
 /**
- * Validates the "New Diary Entry" request body:
- * { title, category?, workedOn, learned?, problems?, solutions? }.
+ * Validates the "New Diary Entry" request body: { title, category?, content }.
+ * `content` is freeform rich HTML from the editor, same shape as blog
+ * posts — checked for actual text after stripping tags, since
+ * "<p><br></p>" (an empty contenteditable canvas) is not real content.
  * Runs after Multer (if an image was included), so req.body is populated
  * from the multipart form fields either way.
  */
 const validateDiaryEntry = (req, res, next) => {
   const errors = [];
-  const { title, workedOn } = req.body || {};
+  const { title, content } = req.body || {};
 
   if (!title || typeof title !== 'string' || !title.trim()) {
     errors.push('Title is required.');
@@ -53,8 +55,9 @@ const validateDiaryEntry = (req, res, next) => {
     errors.push('Title must be 150 characters or fewer.');
   }
 
-  if (!workedOn || typeof workedOn !== 'string' || !workedOn.trim()) {
-    errors.push('"What I Worked On Today" is required.');
+  const plainText = typeof content === 'string' ? content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() : '';
+  if (!plainText) {
+    errors.push('Content is required.');
   }
 
   if (errors.length > 0) {

@@ -88,18 +88,17 @@ const getEntryById = async (req, res, next) => {
  */
 const createEntry = async (req, res, next) => {
   try {
-    const { title, category, workedOn, learned, problems, solutions } = req.body;
+    const { title, category, content } = req.body;
 
     const diary = await Diary.create({
       administrator: req.user._id,
       title,
       category: category || null,
-      workedOn,
-      learned: learned || '',
-      problems: problems || '',
-      solutions: solutions || '',
+      content,
       // `date` is intentionally omitted — the schema default (Date.now)
       // captures both the date and time of publication automatically.
+      // `excerpt` is intentionally omitted — auto-derived from `content`
+      // by the schema's pre-save hook.
     });
 
     // If an image was uploaded alongside the entry, record its metadata
@@ -161,14 +160,11 @@ const updateEntry = async (req, res, next) => {
       return res.status(404).json({ message: 'Entry not found' });
     }
 
-    const { title, category, workedOn, learned, problems, solutions, removeImage } = req.body;
+    const { title, category, content, removeImage } = req.body;
 
     entry.title = title;
     entry.category = category || null;
-    entry.workedOn = workedOn;
-    entry.learned = learned || '';
-    entry.problems = problems || '';
-    entry.solutions = solutions || '';
+    entry.content = content;
 
     const wantsImageRemoved = req.file || removeImage === 'true' || removeImage === true;
 

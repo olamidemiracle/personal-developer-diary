@@ -66,6 +66,29 @@
       .replace(/>/g, '&gt;');
   }
 
+  function stripHtml(html) {
+    return String(html || '')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  /**
+   * Entries write rich HTML `content` from the editor. The bundled mock
+   * data in data.js (used only as a fallback when the API is unreachable)
+   * predates that and stores plain text with blank-line-separated
+   * paragraphs instead — this renders either shape correctly rather than
+   * assuming every entry has already been migrated.
+   */
+  function renderEntryContent(content) {
+    if (!content) return '<p>—</p>';
+    if (/<[a-z][\s\S]*>/i.test(content)) return content;
+    return content
+      .split(/\n{2,}/)
+      .map((para) => `<p>${escapeHtml(para).replace(/\n/g, '<br>')}</p>`)
+      .join('');
+  }
+
   // --- Entry modal (shared by home / entries / search pages) ---
 
   function ensureModal() {
@@ -119,28 +142,7 @@
       entry.category
     )}`;
     const body = qs('#modalBody', overlay);
-
-body.innerHTML = `
-  <section class="modal-section">
-    <h3>What I Worked On Today</h3>
-    <p>${escapeHtml(entry.workedOn || '—')}</p>
-  </section>
-
-  <section class="modal-section">
-    <h3>What I Learned Today</h3>
-    <p>${escapeHtml(entry.learned || '—')}</p>
-  </section>
-
-  <section class="modal-section">
-    <h3>Problems I Faced</h3>
-    <p>${escapeHtml(entry.problems || '—')}</p>
-  </section>
-
-  <section class="modal-section">
-    <h3>How I Solved Them</h3>
-    <p>${escapeHtml(entry.solutions || '—')}</p>
-  </section>
-`;
+    body.innerHTML = `<div class="blog-content">${renderEntryContent(entry.content)}</div>`;
 
     const tagsEl = qs('#modalTags', overlay);
     tagsEl.innerHTML = (entry.tags || [])
@@ -171,7 +173,7 @@ body.innerHTML = `
         <span class="category-badge">${escapeHtml(categoryLabel(categories, entry.category))}</span>
       </div>
       <h3 class="entry-card__title">${escapeHtml(entry.title)}</h3>
-      <p class="entry-card__excerpt">${escapeHtml(entry.excerpt || entry.workedOn || '')}</p>
+      <p class="entry-card__excerpt">${escapeHtml(entry.excerpt || stripHtml(entry.content) || '')}</p>
       <div class="entry-card__footer">
         <div class="tag-row">${(entry.tags || []).slice(0, 3).map((t) => `<span class="tag-chip">#${escapeHtml(t)}</span>`).join('')}</div>
         <span class="entry-card__read">read →</span>
@@ -279,11 +281,7 @@ body.innerHTML = `
       const d = new Date(entry.date);
       const searchText = [
         entry.title,
-        entry.content || entry.excerpt || '',
-        entry.workedOn || '',
-        entry.learned || '',
-        entry.problems || '',
-        entry.solutions || '',
+        stripHtml(entry.content) || entry.excerpt || '',
         (entry.tags || []).join(' '),
       ]
         .join(' ')
@@ -384,7 +382,7 @@ body.innerHTML = `
             <span class="category-badge">${escapeHtml(categoryLabel(categories, entry.category?._id || entry.category))}</span>
           </div>
           <div class="search-result__title">${highlight(entry.title, query)}</div>
-          <p class="search-result__excerpt">${highlight(entry.excerpt || entry.workedOn || '', query)}</p>
+          <p class="search-result__excerpt">${highlight(entry.excerpt || stripHtml(entry.content) || '', query)}</p>
         </div>
       `
         )
