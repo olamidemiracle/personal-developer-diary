@@ -157,7 +157,7 @@ function escapeXml(str) {
 app.get('/sitemap.xml', async (req, res, next) => {
   try {
     const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const staticPages = ['/', '/entries.html', '/blog.html', '/search.html', '/categories.html', '/about.html'];
+    const staticPages = ['/', '/entries.html', '/blog.html', '/search.html', '/about.html'];
     const posts = await Blog.find({ status: 'published' }).select('slug updatedAt').lean();
 
     const urls = [

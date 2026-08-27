@@ -6,9 +6,8 @@
  *   - ?edit=<entryId>  -> edit mode, fetches the entry via
  *                         GET /api/entries/:id and PUTs changes back
  *
- * Everything here is real: the auth guard checks the live session, the
- * category list comes from GET /api/categories, and Publish/Save sends a
- * real multipart request that writes to MongoDB.
+ * Everything here is real: the auth guard checks the live session, and
+ * Publish/Save sends a real multipart request that writes to MongoDB.
  *
  * Date and time are never collected from the user — the auto-timestamp
  * shown on this page is a live preview only; the actual `date` field is
@@ -65,40 +64,6 @@
 
     tick();
     setInterval(tick, 1000);
-  }
-
-  // --- Categories ---
-
-  function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-  }
-
-  async function loadCategoriesIntoSelect(selectedCategoryId) {
-    const select = qs('#entryCategory');
-
-    let categories;
-    try {
-      categories = await window.DiaryAPI.categories.list();
-      if (!Array.isArray(categories) || !categories.length) throw new Error('empty');
-    } catch (_err) {
-      categories = window.DiaryMockData?.categories || [];
-    }
-
-    select.innerHTML =
-      '<option value="">No category</option>' +
-      categories
-        .map((c) => {
-          const value = c._id || c.slug;
-          return `<option value="${value}">${escapeHtml(c.name)}</option>`;
-        })
-        .join('');
-
-    if (selectedCategoryId) {
-      select.value = selectedCategoryId;
-    }
   }
 
   // --- Image preview / removal ---
@@ -170,8 +135,6 @@
     canvas().innerHTML = entry.content || '';
     richEditor.updateStats();
 
-    await loadCategoriesIntoSelect(entry.category?._id || '');
-
     if (Array.isArray(entry.images) && entry.images.length) {
       const preview = qs('#entryImagePreview');
       const removeBtn = qs('#removeImageBtn');
@@ -190,7 +153,6 @@
     hideError(errorEl);
 
     const title = qs('#entryTitle').value.trim();
-    const category = qs('#entryCategory').value;
     const content = canvas().innerHTML.trim();
     const plainText = canvas().innerText.trim();
     const imageFile = qs('#entryImage').files?.[0];
@@ -206,7 +168,6 @@
 
     const formData = new FormData();
     formData.append('title', title);
-    if (category) formData.append('category', category);
     formData.append('content', content);
     if (imageFile) formData.append('image', imageFile);
     if (isEditMode && removeExistingImage) formData.append('removeImage', 'true');
@@ -253,8 +214,6 @@
 
     if (isEditMode) {
       await prefillForEdit();
-    } else {
-      await loadCategoriesIntoSelect();
     }
 
     qs('#newEntryForm').addEventListener('submit', handleSubmit);
