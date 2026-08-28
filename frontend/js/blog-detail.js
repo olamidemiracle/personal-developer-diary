@@ -27,7 +27,7 @@
   }
 
   function renderBlog(blog) {
-    const fullTitle = `${blog.title} — Olamide Miracle`;
+    const fullTitle = `${blog.title} — Oluwabusuyi Olamide`;
     const description = blog.excerpt || '';
     const url = `${window.location.origin}/blog-post.html?slug=${encodeURIComponent(blog.slug)}`;
 
@@ -89,7 +89,7 @@
 
     qs('#blogAuthorName').textContent = blog.administrator?.username
       ? blog.administrator.username
-      : 'Olamide Miracle';
+      : 'Oluwabusuyi Olamide';
 
     // Trusted content: only the logged-in administrator can ever write
     // this HTML (see models/Blog.js) — same trust model as any

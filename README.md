@@ -204,7 +204,7 @@ Kept for reference; the sections above are the practical, up-to-date docs.
 
 ## About Me (Phase 9)
 
-`about.html` shows: name (Olamide Miracle), role ("Software Engineering
+`about.html` shows: name (Oluwabusuyi Olamide), role ("Software Engineering
 Student"), a short description, and three action buttons — **GitHub**,
 **Portfolio**, and **Email Me** (a `mailto:` link). The GitHub/portfolio
 URLs and email address are placeholders (`github.com/olamidemiracle`,

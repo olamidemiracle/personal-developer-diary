@@ -199,7 +199,7 @@ app.get('/feed.xml', async (req, res, next) => {
 
     res.set('Content-Type', 'application/rss+xml');
     res.send(
-      `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0"><channel>\n  <title>Olamide Miracle — Blog</title>\n  <link>${baseUrl}/blog.html</link>\n  <description>Articles and write-ups from Olamide Miracle, software developer.</description>\n${items}\n</channel></rss>`
+      `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0"><channel>\n  <title>Oluwabusuyi Olamide — Blog</title>\n  <link>${baseUrl}/blog.html</link>\n  <description>Articles and write-ups from Oluwabusuyi Olamide, software developer.</description>\n${items}\n</channel></rss>`
     );
   } catch (error) {
     next(error);
