@@ -61,12 +61,14 @@ const blogSchema = new mongoose.Schema(
       required: [true, 'Content is required'],
     },
 
-    // Optional hero/cover image, stored the same way Diary images are —
-    // a path Multer already wrote to backend/uploads/, referenced here
-    // directly rather than via the Image collection (keeps Blog fully
-    // self-contained and independent of Diary's Image model).
+    // Optional hero/cover image, stored directly on the document rather
+    // than via the Image collection (keeps Blog fully self-contained and
+    // independent of Diary's Image model). `path` is the Cloudinary
+    // secure URL; `publicId` is the Cloudinary asset id, needed to delete
+    // it later (see controllers/blogController.js).
     coverImage: {
       path: { type: String, default: null },
+      publicId: { type: String, default: null },
       originalName: { type: String, default: null },
       mimetype: { type: String, default: null },
       size: { type: Number, default: null },

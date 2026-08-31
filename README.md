@@ -47,7 +47,7 @@ GitHub, MongoDB Atlas, and Render instructions.
 | Backend | Node.js, Express.js |
 | Database | MongoDB (Mongoose) |
 | Auth | JSON Web Tokens (httpOnly cookie), bcrypt |
-| File uploads | Multer (disk storage) |
+| File uploads | Multer + Cloudinary |
 | Security | Helmet, express-mongo-sanitize, express-rate-limit, CORS |
 
 ## Project structure
@@ -107,6 +107,7 @@ template with inline comments):
 | `JWT_COOKIE_NAME` | no | defaults to `diary_token` |
 | `CLIENT_URL` | **yes** | allowed CORS origin(s), comma-separated if more than one |
 | `MAX_UPLOAD_SIZE_MB` | no | defaults to 5 |
+| `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | **yes** | from cloudinary.com/console — uploads fail without these |
 | `ADMIN_USERNAME` / `ADMIN_EMAIL` / `ADMIN_PASSWORD` | only for `npm run seed` | the one admin account |
 
 Generate a strong secret:
@@ -173,9 +174,10 @@ blog posts) and `GET /feed.xml` (RSS 2.0 of published blog posts).
 - The server **refuses to start in production** if `JWT_SECRET` is
   missing, too short, or still set to one of the sample values from
   `.env.example`.
-- Multer restricts uploads to image mimetypes and a configurable max size;
-  deleting an entry deletes its image files from disk, not just the
-  database record.
+- Multer restricts uploads to image mimetypes and a configurable max size.
+  Uploads go straight to Cloudinary (not local disk — Render's filesystem
+  is ephemeral and would wipe them on every deploy); deleting an entry or
+  blog post deletes its Cloudinary asset(s), not just the database record.
 
 ## Performance
 
@@ -305,11 +307,11 @@ prompt fields, `administrator + date`, `category + date`.
 `description`, `color` (hex-validated). Indexes: unique on name/slug,
 text index on name/description.
 
-**`Image`** — metadata for files Multer writes to `backend/uploads/`:
-`administrator` (ref, uploader), `diary` (ref, nullable), `filename`,
-`originalName`, `path`, `mimetype` (enum), `size` (capped to match
-Multer's limit). Indexes on `diary + createdAt`, `administrator +
-createdAt`.
+**`Image`** — metadata for files Multer uploads to Cloudinary:
+`administrator` (ref, uploader), `diary` (ref, nullable), `filename`
+(Cloudinary public_id), `originalName`, `path` (Cloudinary secure URL),
+`mimetype` (enum), `size` (capped to match Multer's limit). Indexes on
+`diary + createdAt`, `administrator + createdAt`.
 
 **`Blog`** (added later, kept deliberately independent of the above) —
 `administrator` (ref, author), `title`, `slug` (unique, auto-generated),

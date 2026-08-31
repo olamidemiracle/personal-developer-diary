@@ -1,6 +1,5 @@
-// Upload controller — handles responses after Multer has processed a file.
-// Wiring into entries/avatars happens in Phase 4. For now this confirms
-// that Multer is configured correctly end-to-end.
+// Upload controller — handles responses after Multer/Cloudinary has
+// processed a file (see middleware/uploadMiddleware.js).
 
 // @desc    Upload a single image and return its stored path/URL
 // @route   POST /api/uploads
@@ -13,8 +12,8 @@ const uploadImage = async (req, res) => {
   res.status(201).json({
     message: 'File uploaded successfully',
     file: {
-      filename: req.file.filename,
-      path: `/uploads/${req.file.filename}`,
+      filename: req.file.filename, // Cloudinary public_id
+      path: req.file.path, // Cloudinary secure URL
       size: req.file.size,
       mimetype: req.file.mimetype,
     },

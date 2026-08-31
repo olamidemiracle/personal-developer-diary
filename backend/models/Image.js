@@ -3,10 +3,12 @@ const mongoose = require('mongoose');
 /**
  * Image collection.
  *
- * Multer (configured in Phase 1, middleware/uploadMiddleware.js) writes the
- * actual file bytes to backend/uploads/ on disk. This collection stores the
- * *metadata* about each uploaded file and links it back to the administrator
- * who uploaded it and, optionally, the diary entry it illustrates.
+ * Multer (configured in middleware/uploadMiddleware.js) uploads the actual
+ * file bytes straight to Cloudinary — `path` below is the resulting secure
+ * URL and `filename` is the Cloudinary public_id (needed to delete the
+ * asset later). This collection stores the *metadata* about each uploaded
+ * image and links it back to the administrator who uploaded it and,
+ * optionally, the diary entry it illustrates.
  *
  * Keeping this as its own collection (rather than embedding file metadata
  * directly in the Diary document) lets one image be uploaded and later

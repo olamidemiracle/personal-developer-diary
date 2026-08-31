@@ -1,18 +1,17 @@
-const fs = require('fs');
-const path = require('path');
-
 const Diary = require('../models/Diary');
 const Image = require('../models/Image');
+const cloudinary = require('../config/cloudinary');
 
 /**
- * Deletes every given Image document AND its underlying file on disk.
- * Best-effort on the filesystem side (a missing file is not an error worth
- * failing the request over) — always removes the database record.
+ * Deletes every given Image document AND its underlying Cloudinary asset.
+ * Best-effort on the Cloudinary side (an already-missing asset is not an
+ * error worth failing the request over) — always removes the database
+ * record. `image.filename` holds the Cloudinary public_id (see
+ * middleware/uploadMiddleware.js).
  */
 const deleteImages = async (images) => {
   for (const image of images) {
-    const filePath = path.join(__dirname, '..', 'uploads', image.filename);
-    fs.unlink(filePath, () => {}); // ignore ENOENT etc — best effort
+    cloudinary.uploader.destroy(image.filename).catch(() => {}); // best effort
     await Image.findByIdAndDelete(image._id);
   }
 };
@@ -107,9 +106,9 @@ const createEntry = async (req, res, next) => {
       const image = await Image.create({
         administrator: req.user._id,
         diary: diary._id,
-        filename: req.file.filename,
+        filename: req.file.filename, // Cloudinary public_id
         originalName: req.file.originalname,
-        path: `/uploads/${req.file.filename}`,
+        path: req.file.path, // Cloudinary secure URL
         mimetype: req.file.mimetype,
         size: req.file.size,
       });
@@ -124,10 +123,10 @@ const createEntry = async (req, res, next) => {
 
     res.status(201).json({ message: 'Entry published successfully', entry: populated });
   } catch (error) {
-    // Clean up the uploaded file if the DB write failed, so it doesn't
-    // linger orphaned on disk.
+    // Clean up the uploaded Cloudinary asset if the DB write failed, so it
+    // doesn't linger orphaned.
     if (req.file) {
-      fs.unlink(path.join(__dirname, '..', 'uploads', req.file.filename), () => {});
+      cloudinary.uploader.destroy(req.file.filename).catch(() => {});
     }
     next(error);
   }
@@ -155,7 +154,7 @@ const updateEntry = async (req, res, next) => {
 
     if (!entry) {
       if (req.file) {
-        fs.unlink(path.join(__dirname, '..', 'uploads', req.file.filename), () => {});
+        cloudinary.uploader.destroy(req.file.filename).catch(() => {});
       }
       return res.status(404).json({ message: 'Entry not found' });
     }
@@ -177,9 +176,9 @@ const updateEntry = async (req, res, next) => {
       const image = await Image.create({
         administrator: req.user._id,
         diary: entry._id,
-        filename: req.file.filename,
+        filename: req.file.filename, // Cloudinary public_id
         originalName: req.file.originalname,
-        path: `/uploads/${req.file.filename}`,
+        path: req.file.path, // Cloudinary secure URL
         mimetype: req.file.mimetype,
         size: req.file.size,
       });
@@ -195,7 +194,7 @@ const updateEntry = async (req, res, next) => {
     res.status(200).json({ message: 'Entry updated successfully', entry: populated });
   } catch (error) {
     if (req.file) {
-      fs.unlink(path.join(__dirname, '..', 'uploads', req.file.filename), () => {});
+      cloudinary.uploader.destroy(req.file.filename).catch(() => {});
     }
     next(error);
   }

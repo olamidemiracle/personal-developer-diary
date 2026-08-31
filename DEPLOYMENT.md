@@ -113,6 +113,9 @@ any change is: `git add . && git commit -m "..." && git push`.
    | `JWT_COOKIE_NAME` | `diary_token` |
    | `CLIENT_URL` | your Render URL once known, e.g. `https://developer-diary.onrender.com` (see note below) |
    | `MAX_UPLOAD_SIZE_MB` | `5` |
+   | `CLOUDINARY_CLOUD_NAME` | from your Cloudinary dashboard (cloudinary.com/console) |
+   | `CLOUDINARY_API_KEY` | from your Cloudinary dashboard |
+   | `CLOUDINARY_API_SECRET` | from your Cloudinary dashboard |
    | `ADMIN_USERNAME` | your choice |
    | `ADMIN_EMAIL` | your choice |
    | `ADMIN_PASSWORD` | a strong password |
@@ -153,21 +156,14 @@ any change is: `git add . && git commit -m "..." && git push`.
 
 ### A note on uploaded images in production
 
-`backend/uploads/` is local disk storage. **Render's free/standard web
-services use an ephemeral filesystem** — anything written to disk (i.e.
-uploaded images) is lost on every redeploy or restart. For a personal
-project this may be fine (re-upload after a redeploy), but for anything
-you don't want to lose:
-
-- Use a [Render Persistent Disk](https://render.com/docs/disks) (paid
-  add-on) mounted at `backend/uploads`, **or**
-- Migrate image storage to a cloud provider (e.g. Cloudinary, AWS S3,
-  Backblaze B2) — this would mean changing `uploadMiddleware.js`'s
-  storage engine from `multer.diskStorage` to that provider's Multer
-  storage adapter, and updating `Image.path` to store the returned cloud
-  URL instead of a local `/uploads/...` path. Not implemented here, since
-  it's a meaningful architectural change beyond this project's current
-  scope — flagging it clearly so it's a deliberate choice, not a surprise.
+All uploads (diary entry images, blog cover images, inline editor images)
+go straight to **Cloudinary**, not local disk — see
+`backend/middleware/uploadMiddleware.js`. This matters because **Render's
+free/standard web services use an ephemeral filesystem**: anything
+written to local disk is lost on every redeploy or restart, which used to
+silently delete every uploaded image. Cloudinary storage means uploads
+now survive redeploys indefinitely. Make sure the three `CLOUDINARY_*`
+environment variables above are set — without them, uploads will fail.
 
 ### Redeploying
 
@@ -183,4 +179,4 @@ Render redeploys automatically on every push to your connected branch
 - [ ] Published a test diary entry from the dashboard and it appears on the public site
 - [ ] `backend/.env` was never committed to GitHub (`git log --all --full-history -- backend/.env` should show nothing)
 - [ ] `JWT_SECRET` is a real random value, not a sample from `.env.example`
-- [ ] Considered the uploads-storage note above if image persistence matters to you
+- [ ] `CLOUDINARY_CLOUD_NAME`/`CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET` are set, and a test image upload works

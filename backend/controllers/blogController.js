@@ -1,8 +1,5 @@
-const fs = require('fs');
-const path = require('path');
-
 const Blog = require('../models/Blog');
-const { optimizeImage } = require('../utils/optimizeImage');
+const cloudinary = require('../config/cloudinary');
 
 /**
  * Parses `tags` out of a request body that may have arrived either as a
@@ -25,11 +22,10 @@ function parseTags(rawTags) {
   return [];
 }
 
-/** Deletes a blog's cover image file from disk, if it has one. Best-effort. */
+/** Deletes a blog's Cloudinary cover image asset, if it has one. Best-effort. */
 function deleteCoverImageFile(blog) {
-  if (blog?.coverImage?.path) {
-    const filename = path.basename(blog.coverImage.path);
-    fs.unlink(path.join(__dirname, '..', 'uploads', filename), () => {});
+  if (blog?.coverImage?.publicId) {
+    cloudinary.uploader.destroy(blog.coverImage.publicId).catch(() => {});
   }
 }
 
@@ -113,17 +109,11 @@ const uploadBlogImage = async (req, res, next) => {
       return res.status(400).json({ message: 'No image file was uploaded' });
     }
 
-    const absolutePath = path.join(__dirname, '..', 'uploads', req.file.filename);
-    await optimizeImage(absolutePath);
-
-    // Re-check size after optimization for an accurate figure in the response.
-    const finalSize = fs.existsSync(absolutePath) ? fs.statSync(absolutePath).size : req.file.size;
-
     res.status(201).json({
-      url: `/uploads/${req.file.filename}`,
+      url: req.file.path, // Cloudinary secure URL
       originalName: req.file.originalname,
       mimetype: req.file.mimetype,
-      size: finalSize,
+      size: req.file.size,
     });
   } catch (error) {
     next(error);
@@ -150,13 +140,12 @@ const createBlog = async (req, res, next) => {
     });
 
     if (req.file) {
-      const absolutePath = path.join(__dirname, '..', 'uploads', req.file.filename);
-      await optimizeImage(absolutePath);
       blog.coverImage = {
-        path: `/uploads/${req.file.filename}`,
+        path: req.file.path, // Cloudinary secure URL
+        publicId: req.file.filename, // Cloudinary public_id, needed to delete later
         originalName: req.file.originalname,
         mimetype: req.file.mimetype,
-        size: fs.existsSync(absolutePath) ? fs.statSync(absolutePath).size : req.file.size,
+        size: req.file.size,
       };
     }
 
@@ -169,7 +158,7 @@ const createBlog = async (req, res, next) => {
     });
   } catch (error) {
     if (req.file) {
-      fs.unlink(path.join(__dirname, '..', 'uploads', req.file.filename), () => {});
+      cloudinary.uploader.destroy(req.file.filename).catch(() => {});
     }
     next(error);
   }
@@ -185,7 +174,7 @@ const updateBlog = async (req, res, next) => {
     const blog = await Blog.findOne({ _id: req.params.id, administrator: req.user._id });
 
     if (!blog) {
-      if (req.file) fs.unlink(path.join(__dirname, '..', 'uploads', req.file.filename), () => {});
+      if (req.file) cloudinary.uploader.destroy(req.file.filename).catch(() => {});
       return res.status(404).json({ message: 'Blog post not found' });
     }
 
@@ -201,17 +190,16 @@ const updateBlog = async (req, res, next) => {
     const wantsCoverRemoved = req.file || removeCoverImage === 'true' || removeCoverImage === true;
     if (wantsCoverRemoved && blog.coverImage?.path) {
       deleteCoverImageFile(blog);
-      blog.coverImage = { path: null, originalName: null, mimetype: null, size: null };
+      blog.coverImage = { path: null, publicId: null, originalName: null, mimetype: null, size: null };
     }
 
     if (req.file) {
-      const absolutePath = path.join(__dirname, '..', 'uploads', req.file.filename);
-      await optimizeImage(absolutePath);
       blog.coverImage = {
-        path: `/uploads/${req.file.filename}`,
+        path: req.file.path, // Cloudinary secure URL
+        publicId: req.file.filename, // Cloudinary public_id, needed to delete later
         originalName: req.file.originalname,
         mimetype: req.file.mimetype,
-        size: fs.existsSync(absolutePath) ? fs.statSync(absolutePath).size : req.file.size,
+        size: req.file.size,
       };
     }
 
@@ -224,7 +212,7 @@ const updateBlog = async (req, res, next) => {
     });
   } catch (error) {
     if (req.file) {
-      fs.unlink(path.join(__dirname, '..', 'uploads', req.file.filename), () => {});
+      cloudinary.uploader.destroy(req.file.filename).catch(() => {});
     }
     next(error);
   }
